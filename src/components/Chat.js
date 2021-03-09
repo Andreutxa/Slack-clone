@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import InfoOutlinedIcon from '@material-ui/icons/InfoOutlined';
 import ChatInput from './ChatInput'
@@ -12,7 +12,8 @@ function Chat({ user }) {
 
     let { channelId } = useParams();
     const [ channel, setChannel ] = useState();
-    const [ messages, setMessages ] = useState([])
+    const [ messages, setMessages ] = useState([]);
+    const messagesEndRef = useRef(null);
 
     const getMessages = () => {
         db.collection('rooms')
@@ -22,6 +23,7 @@ function Chat({ user }) {
         .onSnapshot((snapshot)=>{
             let messages = snapshot.docs.map((doc)=>doc.data());
             setMessages(messages);
+            console.log(messages)
         })
     }
 
@@ -29,7 +31,7 @@ function Chat({ user }) {
         if (channelId) {
             let payload = {
                 text: text,
-                timestamps: firebase.firestore.Timestamp.now(),
+                timestamp: firebase.firestore.Timestamp.now(),
                 user: user.name,
                 userImage: user.photo
             }
@@ -45,11 +47,18 @@ function Chat({ user }) {
         })
     }
 
+    const scrollToBottom = () => {
+        messagesEndRef.current.scrollIntoView({ block: 'end', behavior: 'smooth' })
+    };
+
     useEffect(() => {
-        
         getChannel();
         getMessages();
     }, [channelId])
+
+    useEffect(() => {
+        scrollToBottom()
+    }, [messages])
 
     return (
         <Container>
@@ -83,6 +92,7 @@ function Chat({ user }) {
                         />
                     ))
                 }
+                <div ref={messagesEndRef} />
             </MessageContainer>
 
             <ChatInput sendMessage={sendMessage} />
@@ -96,6 +106,7 @@ export default Chat
 const Container = styled.div`
     display: grid;
     grid-template-rows: 64px auto min-content;
+    min-height: 0;
 `
 
 const Channel = styled.div`
@@ -134,6 +145,9 @@ const ChatHeader = styled.div`
 `
 
 const MessageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll;
 
 `
 

@@ -1,0 +1,11 @@
+.normal-input {
+    font-weight: normal;
+} 
+
+.bold-input {
+    font-weight: bolder;
+}
+
+.italics-input {
+    font-style: italic;
+}
